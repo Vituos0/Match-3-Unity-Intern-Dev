@@ -16,7 +16,10 @@ public class UIPanelGame : MonoBehaviour,IMenu
     {
         btnPause.onClick.AddListener(OnClickPause);
     }
-
+    private void OnDestroy()
+    {
+        if (btnPause) btnPause.onClick.RemoveAllListeners();
+    }
     private void OnClickPause()
     {
         m_mngr.ShowPauseMenu();

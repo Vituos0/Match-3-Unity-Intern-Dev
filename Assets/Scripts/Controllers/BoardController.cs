@@ -8,6 +8,8 @@ using UnityEngine;
 public class BoardController : MonoBehaviour
 {
     public event Action OnMoveEvent = delegate { };
+    public event Action OnTimerEvent = delegate { };
+    
 
     public bool IsBusy { get; private set; }
 
@@ -62,7 +64,11 @@ public class BoardController : MonoBehaviour
             case GameManager.eStateGame.PAUSE:
                 IsBusy = true;
                 break;
-            case GameManager.eStateGame.GAME_OVER:
+            case GameManager.eStateGame.GAME_WIN:
+                m_gameOver = true;
+                StopHints();
+                break;
+            case GameManager.eStateGame.GAME_LOSE:
                 m_gameOver = true;
                 StopHints();
                 break;
@@ -168,6 +174,7 @@ public class BoardController : MonoBehaviour
             }
             else
             {
+                OnTimerEvent();
                 OnMoveEvent();
 
                 CollapseMatches(matches, cell2);

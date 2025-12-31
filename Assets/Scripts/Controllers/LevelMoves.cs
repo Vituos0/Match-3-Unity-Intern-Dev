@@ -33,7 +33,7 @@ public class LevelMoves : LevelCondition
 
         if(m_moves <= 0)
         {
-            OnConditionComplete();
+            OnConditionComplete(false);// if out of moves -> you lose
         }
     }
 

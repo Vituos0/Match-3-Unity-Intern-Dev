@@ -7,11 +7,13 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     public event Action<eStateGame> StateChangedAction = delegate { };
+ 
 
     public enum eLevelMode
     {
         TIMER,
-        MOVES
+        MOVES,
+        SORT,
     }
 
     public enum eStateGame
@@ -20,7 +22,8 @@ public class GameManager : MonoBehaviour
         MAIN_MENU,
         GAME_STARTED,
         PAUSE,
-        GAME_OVER,
+        GAME_WIN,
+        GAME_LOSE
     }
 
     private eStateGame m_state;
@@ -44,6 +47,7 @@ public class GameManager : MonoBehaviour
     private UIMainManager m_uiMenu;
 
     private LevelCondition m_levelCondition;
+
 
     private void Awake()
     {
@@ -83,6 +87,11 @@ public class GameManager : MonoBehaviour
 
     public void LoadLevel(eLevelMode mode)
     {
+        ClearLevel();
+        //Debug.Log("LoadLevel Called");
+        if (m_levelCondition != null) 
+        
+        Destroy(m_levelCondition);
         m_boardController = new GameObject("BoardController").AddComponent<BoardController>();
         m_boardController.StartGame(this, m_gameSettings);
 
@@ -94,7 +103,7 @@ public class GameManager : MonoBehaviour
         else if (mode == eLevelMode.TIMER)
         {
             m_levelCondition = this.gameObject.AddComponent<LevelTime>();
-            m_levelCondition.Setup(m_gameSettings.LevelMoves, m_uiMenu.GetLevelConditionView(), this);
+            m_levelCondition.Setup(m_gameSettings.LevelTime, m_uiMenu.GetLevelConditionView(), this);
         }
 
         m_levelCondition.ConditionCompleteEvent += GameOver;
@@ -102,13 +111,14 @@ public class GameManager : MonoBehaviour
         State = eStateGame.GAME_STARTED;
     }
 
-    public void GameOver()
+    public void GameOver(bool isWon)
     {
-        StartCoroutine(WaitBoardController());
+        StartCoroutine(WaitBoardController(isWon));
     }
 
     internal void ClearLevel()
     {
+        DOTween.KillAll();
         if (m_boardController)
         {
             m_boardController.Clear();
@@ -117,7 +127,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private IEnumerator WaitBoardController()
+    private IEnumerator WaitBoardController(bool isWon)
     {
         while (m_boardController.IsBusy)
         {
@@ -126,7 +136,7 @@ public class GameManager : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
 
-        State = eStateGame.GAME_OVER;
+        State = isWon ? eStateGame.GAME_WIN: eStateGame.GAME_LOSE;
 
         if (m_levelCondition != null)
         {
